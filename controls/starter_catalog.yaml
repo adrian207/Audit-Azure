@@ -1,0 +1,187 @@
+# Starter control catalog (15 controls) - minimal fields for seeding
+controls:
+  - ControlId: IAM-001
+    Title: MFA Enforcement
+    Domain: Identity
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 1.1
+      - Framework: MCSB
+        Control: IAM-1
+    Severity: High
+    RemediationType: Policy
+    EvidenceSources:
+      - EntraAPI: "/users?filter=mfaEnabled eq false"
+    Evaluator: check_users_without_mfa
+  - ControlId: IAM-002
+    Title: Limit Owner Role Assignments
+    Domain: Identity
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 1.3
+      - Framework: MCSB
+        Control: IAM-2
+    Severity: High
+    RemediationType: Manual
+    EvidenceSources:
+      - ARG: "roleAssignments where roleDefinitionId endswith 'Owner'"
+    Evaluator: check_owner_role_assignments
+  - ControlId: IAM-003
+    Title: Service Principal Hygiene
+    Domain: Identity
+    BenchmarkMappings:
+      - Framework: MCSB
+        Control: IAM-5
+    Severity: Medium
+    RemediationType: Manual
+    EvidenceSources:
+      - EntraAPI: "/applications"
+    Evaluator: check_service_principals
+  - ControlId: NET-001
+    Title: NSG Exposure
+    Domain: Networking
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 6.1
+      - Framework: MCSB
+        Control: NS-1
+    Severity: Critical
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "securityRules where sourceAddressPrefix == '0.0.0.0/0'"
+    Evaluator: check_nsg_inbound_any
+  - ControlId: NET-002
+    Title: DDoS Protection
+    Domain: Networking
+    BenchmarkMappings:
+      - Framework: MCSB
+        Control: NS-3
+    Severity: Medium
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "ddosProtectionPlans"
+    Evaluator: check_ddos_enabled
+  - ControlId: NET-003
+    Title: Private Endpoints for Data Services
+    Domain: Networking
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 6.5
+      - Framework: MCSB
+        Control: DP-3
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "storageAccounts where allowBlobPublicAccess == true"
+    Evaluator: check_private_endpoints
+  - ControlId: DATA-001
+    Title: HTTPS Only for Storage
+    Domain: Data
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 3.1
+      - Framework: MCSB
+        Control: DP-2
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "storageAccounts where supportsHttpsTrafficOnly == false"
+    Evaluator: check_storage_https_only
+  - ControlId: DATA-002
+    Title: Encryption with CMK
+    Domain: Data
+    BenchmarkMappings:
+      - Framework: MCSB
+        Control: DP-5
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - KeyVault: "keyVaults"
+    Evaluator: check_cmk_encryption
+  - ControlId: DATA-003
+    Title: Backup Coverage
+    Domain: Data
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 4.1
+      - Framework: MCSB
+        Control: BR-1
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - Backup: "backupVaults"
+    Evaluator: check_backup_coverage
+  - ControlId: COMP-001
+    Title: VM Disk Encryption
+    Domain: Compute
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 7.1
+      - Framework: MCSB
+        Control: DP-4
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "virtualMachines"
+    Evaluator: check_vm_disk_encryption
+  - ControlId: COMP-002
+    Title: JIT Access for Management Ports
+    Domain: Compute
+    BenchmarkMappings:
+      - Framework: MCSB
+        Control: NS-6
+    Severity: Medium
+    RemediationType: Config
+    EvidenceSources:
+      - Defender: "justInTimeAccess"
+    Evaluator: check_jit_access
+  - ControlId: COMP-003
+    Title: AKS Security Baseline
+    Domain: Compute
+    BenchmarkMappings:
+      - Framework: MCSB
+        Control: DP-6
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - AKS: "managedClusters"
+    Evaluator: check_aks_baseline
+  - ControlId: MON-001
+    Title: Diagnostic Logs Enabled
+    Domain: Monitoring
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 8.1
+      - Framework: MCSB
+        Control: LT-1
+    Severity: High
+    RemediationType: Config
+    EvidenceSources:
+      - ARG: "diagnosticSettings"
+    Evaluator: check_diagnostic_logs
+  - ControlId: MON-002
+    Title: Activity Log Retention
+    Domain: Monitoring
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 8.2
+      - Framework: MCSB
+        Control: LT-2
+    Severity: Medium
+    RemediationType: Config
+    EvidenceSources:
+      - Monitor: "activityLogSettings"
+    Evaluator: check_activity_log_retention
+  - ControlId: GOV-001
+    Title: Required Tags
+    Domain: Governance
+    BenchmarkMappings:
+      - Framework: CIS
+        Control: 2.1
+      - Framework: MCSB
+        Control: GV-2
+    Severity: Medium
+    RemediationType: Policy
+    EvidenceSources:
+      - ARG: "resources where tags not contains 'CostCenter'"
+    Evaluator: check_required_tags

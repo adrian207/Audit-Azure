@@ -1,0 +1,164 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Finding",
+    "type": "object",
+    "required": [
+        "FindingId",
+        "ControlId",
+        "Domain",
+        "Severity",
+        "Summary",
+        "GeneratedAt",
+        "EvidenceRefs"
+    ],
+    "properties": {
+        "FindingId": {
+            "type": "string",
+            "description": "Unique finding identifier (GUID)"
+        },
+        "ControlId": {
+            "type": "string"
+        },
+        "Domain": {
+            "type": "string",
+            "enum": [
+                "Identity",
+                "Networking",
+                "Data",
+                "Compute",
+                "Monitoring",
+                "Governance",
+                "Cost"
+            ]
+        },
+        "Severity": {
+            "type": "string",
+            "enum": [
+                "Critical",
+                "High",
+                "Medium",
+                "Low"
+            ]
+        },
+        "RiskScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "Summary": {
+            "type": "string"
+        },
+        "Description": {
+            "type": "string"
+        },
+        "ImpactedResources": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "ResourceId",
+                    "ResourceType",
+                    "ResourceName"
+                ],
+                "properties": {
+                    "ResourceId": {
+                        "type": "string"
+                    },
+                    "ResourceType": {
+                        "type": "string"
+                    },
+                    "ResourceName": {
+                        "type": "string"
+                    },
+                    "SubscriptionId": {
+                        "type": "string"
+                    },
+                    "Location": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "EvidenceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": [
+                    "EvidenceId",
+                    "Source",
+                    "QueryOrRequest",
+                    "Timestamp",
+                    "RawResultHash"
+                ],
+                "properties": {
+                    "EvidenceId": {
+                        "type": "string"
+                    },
+                    "Source": {
+                        "type": "string"
+                    },
+                    "QueryOrRequest": {
+                        "type": "string"
+                    },
+                    "Timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "RawResultHash": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Recommendation": {
+            "type": "string"
+        },
+        "Remediation": {
+            "type": "object",
+            "properties": {
+                "FixType": {
+                    "type": "string",
+                    "enum": [
+                        "Policy",
+                        "Config",
+                        "Manual"
+                    ]
+                },
+                "DryRunPlan": {
+                    "type": "string"
+                },
+                "RollbackPlan": {
+                    "type": "string"
+                }
+            }
+        },
+        "Status": {
+            "type": "string",
+            "enum": [
+                "Open",
+                "InProgress",
+                "Resolved",
+                "Suppressed"
+            ]
+        },
+        "GeneratedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "BenchmarkMappings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "Framework": {
+                        "type": "string"
+                    },
+                    "Control": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

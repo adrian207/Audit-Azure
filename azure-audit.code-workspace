@@ -1,0 +1,101 @@
+{
+  "folders": [
+    {
+      "name": "API",
+      "path": "api"
+    },
+    {
+      "name": "UI",
+      "path": "ui"
+    },
+    {
+      "name": "Controls",
+      "path": "controls"
+    },
+    {
+      "name": "Evaluators",
+      "path": "evaluators"
+    },
+    {
+      "name": "Persistence",
+      "path": "persistence"
+    },
+    {
+      "name": "Docs",
+      "path": "docs"
+    },
+    {
+      "name": "Scripts",
+      "path": "scripts"
+    },
+    {
+      "name": "Tests",
+      "path": "tests"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/.DS_Store": true,
+      "**/node_modules": true
+    },
+    "editor.formatOnSave": true,
+    "python.pythonPath": "venv/bin/python",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.defaultProfile.osx": "zsh"
+  },
+  "launch": {
+    "configurations": [
+      {
+        "name": "Run API (FastAPI)",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder:API}/main.py",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Run UI (React)",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder:UI}/node_modules/react-scripts/scripts/start.js",
+        "cwd": "${workspaceFolder:UI}"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Run API + UI",
+        "configurations": ["Run API (FastAPI)", "Run UI (React)"]
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Install API deps",
+        "type": "shell",
+        "command": "pip install -r requirements.txt",
+        "options": {
+          "cwd": "${workspaceFolder:API}"
+        }
+      },
+      {
+        "label": "Install UI deps",
+        "type": "shell",
+        "command": "npm install",
+        "options": {
+          "cwd": "${workspaceFolder:UI}"
+        }
+      },
+      {
+        "label": "Run Tests",
+        "type": "shell",
+        "command": "pytest",
+        "options": {
+          "cwd": "${workspaceFolder:Tests}"
+        }
+      }
+    ]
+  }
+}
