@@ -25,7 +25,7 @@ export const getControls = async () => {
 };
 
 export const runEvaluation = async (controlId) => {
-    const response = await api.post('/evaluate', { control_id: controlId });
+    const response = await api.post('/run-evaluation', { control_id: controlId });
     return response.data;
 };
 

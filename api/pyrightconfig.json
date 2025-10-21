@@ -1,0 +1,25 @@
+{
+    "include": [
+        ".",
+        "../azure_sdk",
+        "../controls",
+        "../evaluators",
+        "../persistence"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules"
+    ],
+    "extraPaths": [
+        "..",
+        "../azure_sdk",
+        "../controls",
+        "../evaluators",
+        "../persistence"
+    ],
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Windows",
+    "typeCheckingMode": "basic",
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false
+}
