@@ -32,6 +32,6 @@
         "postcss": "^8.4.31"
     },
     "devDependencies": {
-        "@craco/craco": "^7.0.0"
+        "@craco/craco": "5.9.0"
     }
 }
