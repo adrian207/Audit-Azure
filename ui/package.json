@@ -10,9 +10,9 @@
         "react-scripts": "^5.0.1"
     },
     "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test --env=jsdom"
+        "start": "craco start",
+        "build": "craco build",
+        "test": "craco test --env=jsdom"
     },
     "proxy": "http://localhost:8000",
     "browserslist": {
@@ -29,7 +29,9 @@
     },
     "overrides": {
         "nth-check": "^2.0.1",
-        "postcss": "^8.4.31",
-        "svgo": "^2.10.0"
+        "postcss": "^8.4.31"
+    },
+    "devDependencies": {
+        "@craco/craco": "^7.0.0"
     }
 }
