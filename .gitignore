@@ -33,3 +33,7 @@ pytest_cache/
 # Misc
 *.swp
 *.bak
+
+# Docker environment files - NEVER COMMIT!
+.env.docker
+docker-compose.override.yml

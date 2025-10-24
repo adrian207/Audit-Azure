@@ -13,13 +13,19 @@ if parent_dir not in sys.path:
 
 from persistence.models import Base
 
-# Use shared in-memory SQLite for tests if requested
+# Get database URL from environment
+# Priority: DATABASE_URL > AZ_AUDIT_DB > default SQLite
 if os.environ.get('AZ_AUDIT_DB', '').startswith('sqlite:///:memory:'):
     DB_PATH = 'sqlite:///:memory:?cache=shared'
+elif os.environ.get('DATABASE_URL'):
+    DB_PATH = os.environ.get('DATABASE_URL')
 else:
     DB_PATH = os.environ.get('AZ_AUDIT_DB', 'sqlite:///./audit.db')
 
-engine = create_engine(DB_PATH, connect_args={"check_same_thread": False} if DB_PATH.startswith('sqlite') else {})
+# Ensure DB_PATH is a string for static analysis and for SQLAlchemy
+DB_PATH = str(DB_PATH)
+is_sqlite = DB_PATH.startswith('sqlite')
+engine = create_engine(DB_PATH, connect_args={"check_same_thread": False} if is_sqlite else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Generator[Session, None, None]:

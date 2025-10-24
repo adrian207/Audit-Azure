@@ -1,0 +1,34 @@
+{
+    "include": [
+        "api",
+        "azure_sdk",
+        "controls",
+        "evaluators",
+        "persistence",
+        "scripts",
+        "tests"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules",
+        "**/.venv",
+        "**/venv",
+        "ui/node_modules",
+        "ui/build",
+        "docs/_build"
+    ],
+    "extraPaths": [
+        ".",
+        "api",
+        "azure_sdk",
+        "controls",
+        "evaluators",
+        "persistence"
+    ],
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Windows",
+    "typeCheckingMode": "basic",
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "reportGeneralTypeIssues": false
+}

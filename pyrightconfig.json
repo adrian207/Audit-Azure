@@ -1,0 +1,16 @@
+{
+    "venvPath": "./",
+    "venv": "",
+    "pythonVersion": "3.11",
+    "executionEnvironments": [
+        {
+            "root": "api",
+            "venv": "",
+            "extraPaths": [
+                ".."
+            ]
+        }
+    ],
+    "reportMissingImports": false,
+    "typeCheckingMode": "basic"
+}

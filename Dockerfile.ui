@@ -1,0 +1,25 @@
+# Azure Audit Platform - UI Container
+FROM node:20-bullseye-slim
+
+# Patch OS packages at build time to reduce known vulnerabilities
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY ui/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy UI source code
+COPY ui/ .
+
+# Expose UI port
+EXPOSE 3000
+
+# Run the UI in development mode
+CMD ["npm", "start"]

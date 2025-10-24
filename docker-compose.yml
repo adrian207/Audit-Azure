@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: audit-azure-db
+    environment:
+      POSTGRES_DB: audit_azure
+      POSTGRES_USER: audit_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - audit-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audit-azure-api
+    environment:
+      # Database
+      DATABASE_URL: postgresql://audit_user:${DB_PASSWORD:-change_me_in_production}@db:5432/audit_azure
+      
+      # Azure Authentication
+      AZURE_SUBSCRIPTION_ID: ${AZURE_SUBSCRIPTION_ID}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      
+      # Security
+      API_MASTER_KEY: ${API_MASTER_KEY:-dev_key_change_in_production}
+      SECRET_KEY: ${SECRET_KEY:-dev_secret_change_in_production}
+      ENABLE_RATE_LIMITING: ${ENABLE_RATE_LIMITING:-false}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-100}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      
+      # Performance
+      MAX_CONCURRENT_EVALUATIONS: ${MAX_CONCURRENT_EVALUATIONS:-5}
+      CACHE_TTL: ${CACHE_TTL:-300}
+      BATCH_SIZE: ${BATCH_SIZE:-50}
+      
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app/api
+      - ./evaluators:/app/evaluators
+      - ./azure_sdk:/app/azure_sdk
+      - ./controls:/app/controls
+      - ./persistence:/app/persistence
+      - ./scripts:/app/scripts
+      - audit_logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - audit-network
+    restart: unless-stopped
+
+  # React Frontend
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: audit-azure-ui
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_VERSION: 2.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./ui/src:/app/src
+      - ./ui/public:/app/public
+    depends_on:
+      - api
+    networks:
+      - audit-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+networks:
+  audit-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  audit_logs:
+    driver: local
