@@ -1,0 +1,67 @@
+{
+  "name": "Azure Audit Platform Protection Rules",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["main", "develop", "release/*"]
+    }
+  },
+  "rules": [
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "required_status_checks": {
+          "strict": true,
+          "contexts": [
+            "ci/tests",
+            "ci/security-scan",
+            "ci/code-quality",
+            "ci/dependency-check"
+          ]
+        }
+      }
+    },
+    {
+      "type": "required_pull_request_reviews",
+      "parameters": {
+        "required_approving_review_count": 2,
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": true
+      }
+    },
+    {
+      "type": "required_signatures",
+      "parameters": {
+        "required_signatures": true
+      }
+    },
+    {
+      "type": "required_linear_history",
+      "parameters": {
+        "required_linear_history": true
+      }
+    },
+    {
+      "type": "required_deployments",
+      "parameters": {
+        "required_deployments": {
+          "environments": ["production", "staging"]
+        }
+      }
+    },
+    {
+      "type": "required_conversation_resolution",
+      "parameters": {
+        "required_conversation_resolution": true
+      }
+    },
+    {
+      "type": "lock_branch",
+      "parameters": {
+        "lock_branch": true
+      }
+    }
+  ]
+}

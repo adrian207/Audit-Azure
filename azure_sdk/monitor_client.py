@@ -7,7 +7,7 @@ Query logs, metrics, and diagnostic settings.
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
 from azure.mgmt.monitor import MonitorManagementClient  # type: ignore[import]
-from azure.monitor.query import LogsQueryClient, MetricsQueryClient  # type: ignore[import]
+from azure.monitor.query import LogsQueryClient  # type: ignore[import]
 from .auth import AzureAuthManager
 
 
@@ -29,10 +29,11 @@ class MonitorClient:
         self.auth_manager = auth_manager or AzureAuthManager.from_environment()
         credential = self.auth_manager.get_credential()
         
-    # Treat SDK clients as Any to reduce static-analysis noise
-    self.mgmt_client: Any = MonitorManagementClient(credential, subscription_id)  # type: ignore
-    self.logs_client: Any = LogsQueryClient(credential)  # type: ignore
-    self.metrics_client: Any = MetricsQueryClient(credential)  # type: ignore
+        # Treat SDK clients as Any to reduce static-analysis noise
+        self.mgmt_client: Any = MonitorManagementClient(credential, subscription_id)  # type: ignore
+        self.logs_client: Any = LogsQueryClient(credential)  # type: ignore
+        # Note: MetricsQueryClient not available in current azure-monitor-query version
+        self.metrics_client: Any = None
     
     def get_diagnostic_settings(self, resource_id: str) -> List[Dict]:
         """
@@ -223,25 +224,9 @@ class MonitorClient:
         Returns:
             Metrics data
         """
-        if not timespan:
-            timespan = timedelta(hours=1)
-        
-        response = self.metrics_client.query_resource(
-            resource_uri=resource_id,
-            metric_names=metric_names,
-            timespan=timespan,
-            aggregations=[aggregation]
-        )
-        
-        metrics = {}
-        for metric in response.metrics:
-            metrics[metric.name] = [
-                {
-                    'timestamp': ts.timestamp,
-                    'value': getattr(ts, aggregation.lower(), None)
-                }
-                for timeseries in metric.timeseries
-                for ts in timeseries.data
-            ]
-        
-        return metrics
+        # Note: MetricsQueryClient not available in current azure-monitor-query version
+        # This is a placeholder implementation
+        return {
+            'error': 'MetricsQueryClient not available in current azure-monitor-query version',
+            'metrics': {}
+        }

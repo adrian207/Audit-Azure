@@ -30,9 +30,9 @@ class PolicyClient:
         self.auth_manager = auth_manager or AzureAuthManager.from_environment()
         credential = self.auth_manager.get_credential()
         
-    # Treat underlying SDK clients as Any to avoid spurious static-analysis attribute/type errors
-    self.policy_client: Any = AzurePolicyClient(credential, subscription_id)  # type: ignore
-    self.insights_client: Any = PolicyInsightsClient(credential)  # type: ignore
+        # Treat underlying SDK clients as Any to avoid spurious static-analysis attribute/type errors
+        self.policy_client: Any = AzurePolicyClient(credential, subscription_id)  # type: ignore
+        self.insights_client: Any = PolicyInsightsClient(credential, subscription_id)  # type: ignore
     
     def get_policy_assignments(self, scope: Optional[str] = None) -> List[Dict]:
         """

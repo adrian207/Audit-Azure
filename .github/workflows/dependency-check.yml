@@ -1,0 +1,70 @@
+name: Dependency Security Check
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install Python dependencies
+        run: |
+          pip install safety pip-audit
+          pip install -r api/requirements.txt
+      
+      - name: Install Node.js dependencies
+        run: cd ui && npm install
+      
+      - name: Run Safety check
+        run: safety check --json --output safety-report.json
+      
+      - name: Run pip-audit
+        run: pip-audit --format=json --output=pip-audit-report.json
+      
+      - name: Run npm audit
+        run: cd ui && npm audit --json > ../npm-audit-report.json
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-security-reports
+          path: |
+            safety-report.json
+            pip-audit-report.json
+            npm-audit-report.json
+      
+      - name: Comment on PR with security findings
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const safetyReport = JSON.parse(fs.readFileSync('safety-report.json', 'utf8'));
+              if (safetyReport.length > 0) {
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `⚠️ **Security Alert**: Found ${safetyReport.length} vulnerable dependencies in Python packages. Please review the safety report.`
+                });
+              }
+            } catch (error) {
+              console.log('No safety issues found or error reading report');
+            }

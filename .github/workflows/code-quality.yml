@@ -1,0 +1,44 @@
+name: Code Quality
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install linting tools
+        run: |
+          pip install black flake8 mypy isort
+          cd ui && npm install
+      
+      - name: Run Black formatter check
+        run: black --check api/
+      
+      - name: Run Flake8 linter
+        run: flake8 api/ --max-line-length=100 --exclude=__pycache__
+      
+      - name: Run MyPy type checker
+        run: mypy api/ --ignore-missing-imports
+      
+      - name: Run isort import sorter
+        run: isort --check-only api/
+      
+      - name: Run ESLint
+        run: cd ui && npm run lint
+      
+      - name: Check for TODO/FIXME comments
+        run: |
+          if grep -r "TODO\|FIXME" api/ --exclude-dir=__pycache__; then
+            echo "Found TODO/FIXME comments that should be addressed"
+            exit 1
+          fi

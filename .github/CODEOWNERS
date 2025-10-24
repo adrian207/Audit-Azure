@@ -1,0 +1,47 @@
+# Global owners
+* @adrian207
+
+# API and backend
+/api/ @adrian207
+/persistence/ @adrian207
+/evaluators/ @adrian207
+/azure_sdk/ @adrian207
+/analytics/ @adrian207
+/remediation/ @adrian207
+/scheduler/ @adrian207
+/reports/ @adrian207
+/auth/ @adrian207
+/audit/ @adrian207
+/dashboard/ @adrian207
+/controls/ @adrian207
+
+# Frontend
+/ui/ @adrian207
+
+# Documentation
+/docs/ @adrian207
+README.md @adrian207
+
+# Security critical files
+.github/workflows/ @adrian207
+Dockerfile @adrian207
+docker-compose.yml @adrian207
+
+# Configuration files
+*.yml @adrian207
+*.yaml @adrian207
+requirements.txt @adrian207
+package.json @adrian207
+package-lock.json @adrian207
+
+# Database and migrations
+/alembic/ @adrian207
+/persistence/alembic/ @adrian207
+
+# Scripts and automation
+/scripts/ @adrian207
+*.bat @adrian207
+*.sh @adrian207
+
+# Tests
+/tests/ @adrian207
