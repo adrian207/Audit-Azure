@@ -37,3 +37,23 @@ pytest_cache/
 # Docker environment files - NEVER COMMIT!
 .env.docker
 docker-compose.override.yml
+
+# Build artifacts
+dist/
+build/
+*.egg
+*.whl
+*.tar.gz
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Distribution / packaging
+*.spec
