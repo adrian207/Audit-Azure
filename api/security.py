@@ -27,9 +27,11 @@ import json
 security_logger = logging.getLogger('security')
 security_logger.setLevel(logging.INFO)
 
-# Audit log handler
+# Audit log handler (logs/ at the repository root, created if missing)
 if os.getenv('ENABLE_AUDIT_LOG', 'true').lower() == 'true':
-    audit_handler = logging.FileHandler('logs/audit.log')
+    _log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
+    os.makedirs(_log_dir, exist_ok=True)
+    audit_handler = logging.FileHandler(os.path.join(_log_dir, 'audit.log'))
     audit_handler.setFormatter(logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     ))
@@ -150,6 +152,52 @@ class APIKeyAuth:
                 }
         
         return None
+
+
+# Paths that never require an API key (health checks and API docs)
+PUBLIC_PATHS = {"/", "/health", "/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json"}
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    """Require a valid X-API-Key header on every request except PUBLIC_PATHS.
+
+    The key is API_MASTER_KEY. If it isn't set, protected requests get 503 so
+    the API never runs open by accident; set AUTH_DISABLED=true to opt out
+    explicitly (local experiments only).
+    """
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.auth = APIKeyAuth()
+        self.disabled = os.getenv('AUTH_DISABLED', 'false').lower() == 'true'
+        if self.disabled:
+            security_logger.warning("API key authentication is DISABLED (AUTH_DISABLED=true)")
+        elif not self.auth.api_keys:
+            security_logger.warning("API_MASTER_KEY is not set: protected endpoints will return 503")
+
+    async def dispatch(self, request: Request, call_next):
+        if self.disabled or request.method == "OPTIONS" or request.url.path in PUBLIC_PATHS:
+            return await call_next(request)
+
+        if not self.auth.api_keys:
+            return Response(
+                content=json.dumps({"detail": "API_MASTER_KEY is not configured on the server"}),
+                status_code=503,
+                media_type="application/json"
+            )
+
+        api_key = request.headers.get('X-API-Key')
+        if not api_key or not self.auth.validate_key(api_key):
+            security_logger.warning(
+                f"{'Missing' if not api_key else 'Invalid'} API key for {request.method} {request.url.path}"
+            )
+            return Response(
+                content=json.dumps({"detail": "Valid X-API-Key header required"}),
+                status_code=401,
+                media_type="application/json"
+            )
+
+        return await call_next(request)
 
 
 def require_api_key(
@@ -349,6 +397,9 @@ def configure_security(app):
     Args:
         app: FastAPI application instance
     """
+    # Require an API key on everything except health checks and docs
+    app.add_middleware(APIKeyMiddleware)
+
     # Enable rate limiting if configured
     if os.getenv('ENABLE_RATE_LIMITING', 'true').lower() == 'true':
         rate_limiter = RateLimiter(

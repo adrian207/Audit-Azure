@@ -38,7 +38,7 @@ services:
       AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
       
       # Security
-      API_MASTER_KEY: ${API_MASTER_KEY:-dev_key_change_in_production}
+      API_MASTER_KEY: ${API_MASTER_KEY:?Set API_MASTER_KEY in .env}
       SECRET_KEY: ${SECRET_KEY:-dev_secret_change_in_production}
       ENABLE_RATE_LIMITING: ${ENABLE_RATE_LIMITING:-false}
       RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-100}
@@ -75,8 +75,9 @@ services:
       dockerfile: Dockerfile.ui
     container_name: audit-azure-ui
     environment:
-      REACT_APP_API_URL: http://localhost:8000
-      REACT_APP_VERSION: 2.0.0
+      # The dashboard's dev server forwards /api to the API and adds the key
+      API_PROXY_TARGET: http://api:8000
+      API_MASTER_KEY: ${API_MASTER_KEY:?Set API_MASTER_KEY in .env}
     ports:
       - "3000:3000"
     volumes:

@@ -8,7 +8,7 @@ Python platform that checks Azure subscriptions against Azure Security Benchmark
 - **Evaluates** controls in these areas (`evaluators/`): identity, Entra ID, network security, networking, data protection, logging and monitoring, vulnerability management, Azure Policy compliance and Secure Score
 - **Control catalog** of 74 ASB controls, served by `/controls`
 - **Stores** findings and evidence in SQLite by default, or PostgreSQL through `DATABASE_URL`, with Alembic migrations
-- **Serves** a REST API (`/run-evaluation`, `/evaluate`, `/findings`, `/controls`, `/evidence`, `/remediation/preview`, `/remediation/execute`, `/preflight`, `/health`) with interactive docs at `/docs`, and a React dashboard built with Vite
+- **Serves** a REST API (`/run-evaluation`, `/evaluate`, `/findings`, `/controls`, `/evidence`, `/remediation/preview`, `/remediation/execute`, `/preflight`, `/health`) protected by an API key, with interactive docs at `/docs`, and a React dashboard built with Vite
 - **Includes** PowerShell collectors and remediation scripts for MFA, NSGs and storage (`scripts/collectors/`, `scripts/remediations/`)
 
 ## Requirements
@@ -26,19 +26,29 @@ Python platform that checks Azure subscriptions against Azure Security Benchmark
 ```bash
 git clone https://github.com/adrian207/Audit-Azure.git
 cd Audit-Azure
-cp .env.docker.example .env      # set the AZURE_* values and DB_PASSWORD
+cp .env.docker.example .env      # set the AZURE_* values, DB_PASSWORD and API_MASTER_KEY (openssl rand -hex 32)
 docker compose up -d
 ```
 
 **Local:**
 
 ```bash
-./install.sh        # creates the Python venv in api/ and installs UI packages (install.bat on Windows)
+./install.sh        # creates the Python venv, installs UI packages and writes .env with a new API key (install.bat on Windows)
 az login
 ./run_all.sh        # API on http://localhost:8000, UI on http://localhost:3000
 ```
 
-Then open `http://localhost:8000/docs` and call `POST /run-evaluation`, or use the dashboard.
+Then use the dashboard, or open `http://localhost:8000/docs`, click **Authorize**, enter the key and call `POST /run-evaluation`.
+
+## Authentication
+
+Every API endpoint except `/health` and the docs requires an `X-API-Key` header matching `API_MASTER_KEY`. If the key isn't set, the API returns 503 rather than running open (`AUTH_DISABLED=true` turns this off for local experiments). Requests are also rate-limited per key (`RATE_LIMIT_REQUESTS` per `RATE_LIMIT_WINDOW` seconds).
+
+The dashboard never sees the key: its server forwards `/api` requests to the API and adds the header (`ui/vite.config.js`).
+
+```bash
+curl -H "X-API-Key: $API_MASTER_KEY" http://localhost:8000/findings
+```
 
 ## Repository layout
 

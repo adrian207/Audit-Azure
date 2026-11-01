@@ -17,6 +17,7 @@ import inspect
 try:
     from fastapi import FastAPI, Depends, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.security import APIKeyHeader
     from pydantic import BaseModel
     from sqlalchemy.orm import Session
 except ImportError as e:
@@ -28,6 +29,19 @@ except ImportError as e:
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
+
+# Load settings from the repository-root .env (written by install.sh).
+# Variables already set in the environment (e.g. by Docker) take precedence.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(parent_dir) / ".env", override=False)
+except ImportError:
+    pass
+
+try:
+    from .security import configure_security  # imported as api.main
+except ImportError:
+    from security import configure_security  # run as `uvicorn main:app` from api/
 
 try:
     from persistence.db import SessionLocal, get_db, init_db
@@ -42,9 +56,15 @@ except ImportError as e:
 
 def create_app():
     """Create FastAPI application."""
-    app = FastAPI(title="Azure Audit API", version="0.1.0")
-    
-    # Add CORS middleware to allow browser requests
+    # Declares the X-API-Key header so /docs shows an Authorize button;
+    # enforcement happens in APIKeyMiddleware (api/security.py)
+    api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+    app = FastAPI(title="Azure Audit API", version="0.1.0", dependencies=[Depends(api_key_header)])
+
+    # API key auth, rate limiting and security headers
+    configure_security(app)
+
+    # CORS is added last so it wraps everything (preflights and 401s keep CORS headers)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -311,6 +331,36 @@ async def post_evidence(item: EvidenceCreate, db: Session = Depends(get_db)):
             status_code=500,
             detail=f"Internal server error: {str(e)}"
         )
+
+def _evidence_to_dict(ev, include_raw: bool) -> Dict[str, Any]:
+    ts = getattr(ev, 'Timestamp', None)
+    out = {
+        "EvidenceId": ev.EvidenceId,
+        "Source": ev.Source,
+        "QueryOrRequest": ev.QueryOrRequest,
+        "Timestamp": ts.isoformat() if ts is not None else None,
+        "Hash": ev.Hash,
+    }
+    if include_raw:
+        out["RawResult"] = ev.RawResult
+    return out
+
+
+@app.get("/evidence")
+async def list_evidence(db: Session = Depends(get_db)):
+    """List stored evidence, newest first (raw results omitted; use /evidence/{id})."""
+    rows = db.query(Evidence).order_by(Evidence.Timestamp.desc()).all()
+    return [_evidence_to_dict(r, include_raw=False) for r in rows]
+
+
+@app.get("/evidence/{evidence_id}")
+async def get_evidence(evidence_id: str, db: Session = Depends(get_db)):
+    """Get one evidence record including its raw result."""
+    ev = db.query(Evidence).filter(Evidence.EvidenceId == evidence_id).first()
+    if not ev:
+        raise HTTPException(status_code=404, detail="evidence not found")
+    return _evidence_to_dict(ev, include_raw=True)
+
 
 @app.post("/findings")
 async def post_finding(f: FindingCreate):

@@ -19,7 +19,7 @@ def setup_db(tmp_path_factory):
     # Cleanup handled by pytest tmp_path_factory
 
 def test_post_evidence_and_evaluate_and_get_finding():
-    client = TestClient(app)
+    client = TestClient(app, headers={"X-API-Key": "test-api-key"})
     raw = {"users": [{"id":"user-1", "userPrincipalName":"alice@contoso.com", "mfaEnabled":False}]}
     evidence = {
         "Source": "Test",

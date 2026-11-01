@@ -17,6 +17,14 @@ from azure.identity import (
 from azure.core.credentials import TokenCredential
 
 
+def _setting(name: str) -> Optional[str]:
+    """Read an environment variable, ignoring the placeholder values written by install.sh."""
+    value = os.getenv(name)
+    if not value or value.startswith('your-') or value.endswith('-here'):
+        return None
+    return value
+
+
 class AzureAuthManager:
     """Manage Azure authentication"""
     
@@ -38,9 +46,9 @@ class AzureAuthManager:
             use_cli: Use Azure CLI credentials
             use_managed_identity: Use managed identity
         """
-        self.tenant_id = tenant_id or os.getenv('AZURE_TENANT_ID')
-        self.client_id = client_id or os.getenv('AZURE_CLIENT_ID')
-        self.client_secret = client_secret or os.getenv('AZURE_CLIENT_SECRET')
+        self.tenant_id = tenant_id or _setting('AZURE_TENANT_ID')
+        self.client_id = client_id or _setting('AZURE_CLIENT_ID')
+        self.client_secret = client_secret or _setting('AZURE_CLIENT_SECRET')
         self.use_cli = use_cli
         self.use_managed_identity = use_managed_identity
         self._credential: Optional[TokenCredential] = None
@@ -111,9 +119,9 @@ class AzureAuthManager:
         - AZURE_USE_MANAGED_IDENTITY (default: false)
         """
         return AzureAuthManager(
-            tenant_id=os.getenv('AZURE_TENANT_ID'),
-            client_id=os.getenv('AZURE_CLIENT_ID'),
-            client_secret=os.getenv('AZURE_CLIENT_SECRET'),
+            tenant_id=_setting('AZURE_TENANT_ID'),
+            client_id=_setting('AZURE_CLIENT_ID'),
+            client_secret=_setting('AZURE_CLIENT_SECRET'),
             use_cli=os.getenv('AZURE_USE_CLI', 'true').lower() == 'true',
             use_managed_identity=os.getenv('AZURE_USE_MANAGED_IDENTITY', 'false').lower() == 'true'
         )

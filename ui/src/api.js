@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.REACT_APP_API_URL || 'http://localhost:8000';
+// All API calls go through the dashboard's own server at /api, which forwards them
+// to the API and adds the X-API-Key header (see vite.config.js). The key never
+// reaches the browser.
+const API_BASE = '/api';
 
 const api = axios.create({
     baseURL: API_BASE,

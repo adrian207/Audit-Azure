@@ -110,6 +110,8 @@ echo [OK] UI dependencies installed
 echo.
 echo [6/7] Setting up environment configuration...
 cd /d "%~dp0"
+setlocal EnableDelayedExpansion
+for /f %%k in ('python -c "import secrets; print(secrets.token_hex(32))"') do set APIKEY=%%k
 if not exist ".env" (
     echo Creating .env file from template...
     (
@@ -135,6 +137,7 @@ if not exist ".env" (
         echo.
         echo # Security
         echo SECRET_KEY=%RANDOM%%RANDOM%%RANDOM%%RANDOM%
+        echo API_MASTER_KEY=!APIKEY!
         echo ENABLE_RATE_LIMITING=true
         echo RATE_LIMIT_REQUESTS=100
         echo RATE_LIMIT_WINDOW=60
@@ -152,12 +155,14 @@ if not exist ".env" (
 ) else (
     echo [INFO] .env file already exists - skipping
 )
+findstr /b "API_MASTER_KEY=" .env >nul || (echo API_MASTER_KEY=!APIKEY!>> .env & echo [OK] API_MASTER_KEY added to .env)
+endlocal
 
 echo.
 echo [7/7] Running database migrations...
 cd /d "%~dp0\api"
 call venv\Scripts\activate.bat
-python -c "from persistence.database import init_db; init_db()" 2>nul
+python -c "import sys; sys.path.insert(0, '..'); from persistence.db import init_db; init_db()" 2>nul
 if %errorLevel% neq 0 (
     echo [WARNING] Database initialization skipped (will auto-create on first run)
 )

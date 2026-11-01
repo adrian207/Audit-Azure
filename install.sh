@@ -120,6 +120,7 @@ API_PORT=8000
 
 # Security
 SECRET_KEY=$(openssl rand -hex 32)
+API_MASTER_KEY=$(openssl rand -hex 32)
 ENABLE_RATE_LIMITING=true
 RATE_LIMIT_REQUESTS=100
 RATE_LIMIT_WINDOW=60
@@ -138,11 +139,17 @@ else
     echo -e "${YELLOW}[INFO] .env file already exists - skipping${NC}"
 fi
 
+# Older .env files predate API authentication: add a key if missing
+if ! grep -q '^API_MASTER_KEY=' .env; then
+    echo "API_MASTER_KEY=$(openssl rand -hex 32)" >> .env
+    echo -e "${GREEN}[OK] API_MASTER_KEY added to .env${NC}"
+fi
+
 echo ""
 echo "[7/7] Running database migrations..."
 cd "$SCRIPT_DIR/api"
 source venv/bin/activate
-python -c "from persistence.database import init_db; init_db()" 2>/dev/null || echo -e "${YELLOW}[WARNING] Database initialization skipped${NC}"
+python -c "import sys; sys.path.insert(0, '..'); from persistence.db import init_db; init_db()" 2>/dev/null || echo -e "${YELLOW}[WARNING] Database initialization skipped${NC}"
 deactivate
 
 echo ""

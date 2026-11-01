@@ -57,3 +57,6 @@ dmypy.json
 
 # Distribution / packaging
 *.spec
+
+# Runtime logs
+logs/

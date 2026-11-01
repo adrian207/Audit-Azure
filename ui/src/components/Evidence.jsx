@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { getEvidence, createEvidence } from '../api';
 
+const EMPTY_FORM = { Source: '', QueryOrRequest: '', RawResult: '' };
+
 function Evidence() {
     const [evidence, setEvidence] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({
-        ResourceId: '',
-        ResourceType: '',
-        Region: '',
-        Data: ''
-    });
+    const [formData, setFormData] = useState(EMPTY_FORM);
 
     useEffect(() => {
         loadEvidence();
@@ -18,10 +16,12 @@ function Evidence() {
 
     const loadEvidence = async () => {
         try {
+            setError('');
             const data = await getEvidence();
             setEvidence(data);
-        } catch (error) {
-            console.error('Error loading evidence:', error);
+        } catch (err) {
+            console.error('Error loading evidence:', err);
+            setError('Could not load evidence from the API.');
         } finally {
             setLoading(false);
         }
@@ -29,18 +29,27 @@ function Evidence() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const raw = formData.RawResult.trim();
+        if (raw) {
+            try {
+                JSON.parse(raw);
+            } catch {
+                alert('Raw result must be valid JSON.');
+                return;
+            }
+        }
         try {
-            const evidenceData = {
-                ...formData,
-                Data: JSON.parse(formData.Data || '{}')
-            };
-            await createEvidence(evidenceData);
+            await createEvidence({
+                Source: formData.Source,
+                QueryOrRequest: formData.QueryOrRequest,
+                RawResult: raw || null
+            });
             setShowForm(false);
-            setFormData({ ResourceId: '', ResourceType: '', Region: '', Data: '' });
+            setFormData(EMPTY_FORM);
             loadEvidence();
-        } catch (error) {
-            console.error('Error creating evidence:', error);
-            alert('Error creating evidence. Please check the data format.');
+        } catch (err) {
+            console.error('Error creating evidence:', err);
+            alert('Error creating evidence. Check the API is running and try again.');
         }
     };
 
@@ -52,7 +61,7 @@ function Evidence() {
         <div>
             <div className="page-header">
                 <h2>Evidence</h2>
-                <p>Azure resource evidence collection</p>
+                <p>Raw results collected from Azure, used by evaluators</p>
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
@@ -66,38 +75,32 @@ function Evidence() {
                     <h3>New Evidence</h3>
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
-                            <label>Resource ID</label>
+                            <label>Source</label>
                             <input
                                 type="text"
-                                value={formData.ResourceId}
-                                onChange={(e) => setFormData({ ...formData, ResourceId: e.target.value })}
+                                value={formData.Source}
+                                onChange={(e) => setFormData({ ...formData, Source: e.target.value })}
+                                placeholder="e.g. Resource Graph, Microsoft Graph, Defender"
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Resource Type</label>
+                            <label>Query or request</label>
                             <input
                                 type="text"
-                                value={formData.ResourceType}
-                                onChange={(e) => setFormData({ ...formData, ResourceType: e.target.value })}
+                                value={formData.QueryOrRequest}
+                                onChange={(e) => setFormData({ ...formData, QueryOrRequest: e.target.value })}
+                                placeholder="The query or API call that produced the result"
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Region</label>
-                            <input
-                                type="text"
-                                value={formData.Region}
-                                onChange={(e) => setFormData({ ...formData, Region: e.target.value })}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Data (JSON format)</label>
+                            <label>Raw result (JSON)</label>
                             <textarea
-                                rows="4"
-                                value={formData.Data}
-                                onChange={(e) => setFormData({ ...formData, Data: e.target.value })}
-                                placeholder='{"key": "value"}'
+                                rows="6"
+                                value={formData.RawResult}
+                                onChange={(e) => setFormData({ ...formData, RawResult: e.target.value })}
+                                placeholder='{"users": [{"id": "user-1", "mfaEnabled": false}]}'
                             />
                         </div>
                         <button type="submit" className="btn btn-primary">Create Evidence</button>
@@ -107,27 +110,29 @@ function Evidence() {
 
             <div className="card">
                 <h3>Evidence Items ({evidence.length})</h3>
-                {evidence.length === 0 ? (
+                {error ? (
+                    <p>{error}</p>
+                ) : evidence.length === 0 ? (
                     <p>No evidence collected yet.</p>
                 ) : (
                     <table className="table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Resource ID</th>
-                                <th>Type</th>
-                                <th>Region</th>
+                                <th>Source</th>
+                                <th>Query or request</th>
                                 <th>Collected</th>
+                                <th>SHA-256</th>
                             </tr>
                         </thead>
                         <tbody>
                             {evidence.map(item => (
                                 <tr key={item.EvidenceId}>
                                     <td>{item.EvidenceId}</td>
-                                    <td>{item.ResourceId}</td>
-                                    <td>{item.ResourceType}</td>
-                                    <td>{item.Region || 'N/A'}</td>
-                                    <td>{new Date(item.CollectedAt).toLocaleString()}</td>
+                                    <td>{item.Source}</td>
+                                    <td>{item.QueryOrRequest}</td>
+                                    <td>{item.Timestamp ? new Date(item.Timestamp).toLocaleString() : 'N/A'}</td>
+                                    <td title={item.Hash}>{item.Hash ? `${item.Hash.slice(0, 12)}…` : 'N/A'}</td>
                                 </tr>
                             ))}
                         </tbody>
