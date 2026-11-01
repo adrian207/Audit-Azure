@@ -592,30 +592,30 @@ async def run_evaluation(payload: dict):
             return normalized
 
         # Ensure findings is a list-like iterable
-                if findings is None:
-                    findings = []
-                elif isinstance(findings, dict):
-                    findings = [findings]
-                elif isinstance(findings, (list, tuple, set)):
-                    findings = list(findings)
-                else:
-                    try:
-                        findings = list(findings)
-                    except Exception:
-                        findings = [findings]
-                # Cast to a concrete typed list for static analysis
-                findings = cast(List[Dict[str, Any]], findings)
+        if findings is None:
+            findings = []
+        elif isinstance(findings, dict):
+            findings = [findings]
+        elif isinstance(findings, (list, tuple, set)):
+            findings = list(findings)
+        else:
+            try:
+                findings = list(findings)
+            except Exception:
+                findings = [findings]
+        # Cast to a concrete typed list for static analysis
+        findings = cast(List[Dict[str, Any]], findings)
 
         # Store findings in database
         db = SessionLocal()
         try:
-                for finding in findings:
-                    finding = cast(Dict[str, Any], finding)
-                    finding_id = finding.get("FindingId", str(uuid.uuid4()))
-                    finding["FindingId"] = finding_id
-                    finding["GeneratedAt"] = datetime.datetime.utcnow().isoformat()
-                    # Normalize to DB schema
-                    nf = normalize_finding(finding, control_id)
+            for finding in findings:
+                finding = cast(Dict[str, Any], finding)
+                finding_id = finding.get("FindingId", str(uuid.uuid4()))
+                finding["FindingId"] = finding_id
+                finding["GeneratedAt"] = datetime.datetime.utcnow().isoformat()
+                # Normalize to DB schema
+                nf = normalize_finding(finding, control_id)
                 # Create Finding record
                 db_finding = Finding(
                     FindingId=finding_id,

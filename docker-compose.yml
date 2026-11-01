@@ -81,7 +81,7 @@ services:
       - "3000:3000"
     volumes:
       - ./ui/src:/app/src
-      - ./ui/public:/app/public
+      - ./ui/index.html:/app/index.html
     depends_on:
       - api
     networks:

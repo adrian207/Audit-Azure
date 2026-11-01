@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router';
 import Dashboard from './components/Dashboard';
 import Evidence from './components/Evidence';
 import Findings from './components/Findings';

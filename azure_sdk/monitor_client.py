@@ -29,10 +29,10 @@ class MonitorClient:
         self.auth_manager = auth_manager or AzureAuthManager.from_environment()
         credential = self.auth_manager.get_credential()
         
-    # Treat SDK clients as Any to reduce static-analysis noise
-    self.mgmt_client: Any = MonitorManagementClient(credential, subscription_id)  # type: ignore
-    self.logs_client: Any = LogsQueryClient(credential)  # type: ignore
-    self.metrics_client: Any = MetricsQueryClient(credential)  # type: ignore
+        # Treat SDK clients as Any to reduce static-analysis noise
+        self.mgmt_client: Any = MonitorManagementClient(credential, subscription_id)  # type: ignore
+        self.logs_client: Any = LogsQueryClient(credential)  # type: ignore
+        self.metrics_client: Any = MetricsQueryClient(credential)  # type: ignore
     
     def get_diagnostic_settings(self, resource_id: str) -> List[Dict]:
         """

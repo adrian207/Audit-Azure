@@ -29,8 +29,8 @@ class ResourceGraphClient:
         """
         self.auth_manager = auth_manager or AzureAuthManager.from_environment()
         credential = self.auth_manager.get_credential()
-    # Treat the underlying SDK client as Any for static analysis
-    self.client: Any = AzureRGClient(credential)  # type: ignore
+        # Treat the underlying SDK client as Any for static analysis
+        self.client: Any = AzureRGClient(credential)  # type: ignore
     
     def query(
         self,

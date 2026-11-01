@@ -6,15 +6,15 @@ Python platform that checks Azure subscriptions against Azure Security Benchmark
 
 - **Collects** data from Azure Resource Graph, Microsoft Defender for Cloud, Azure Policy, Azure Monitor and Entra ID (`azure_sdk/`)
 - **Evaluates** controls in these areas (`evaluators/`): identity, Entra ID, network security, networking, data protection, logging and monitoring, vulnerability management, Azure Policy compliance and Secure Score
-- **Control catalog** in `controls/`, covering 76 ASB control IDs
+- **Control catalog** of 74 ASB controls, served by `/controls`
 - **Stores** findings and evidence in SQLite by default, or PostgreSQL through `DATABASE_URL`, with Alembic migrations
-- **Serves** a REST API (`/run-evaluation`, `/evaluate`, `/findings`, `/controls`, `/evidence`, `/preflight`, `/health`) with interactive docs at `/docs`
+- **Serves** a REST API (`/run-evaluation`, `/evaluate`, `/findings`, `/controls`, `/evidence`, `/remediation/preview`, `/remediation/execute`, `/preflight`, `/health`) with interactive docs at `/docs`, and a React dashboard built with Vite
 - **Includes** PowerShell collectors and remediation scripts for MFA, NSGs and storage (`scripts/collectors/`, `scripts/remediations/`)
 
 ## Requirements
 
-- Python 3.11 (the Docker image uses 3.11; the pinned dependencies don't build on Python 3.13)
-- Node.js for the React UI
+- Python 3.11 or later (tested on 3.11 and 3.13)
+- Node.js 20.19+ or 22.12+ for the dashboard
 - Azure CLI, or a service principal (`AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`). Authentication tries the service principal, then managed identity, then the Azure CLI login
 - Reader on the subscriptions you assess, plus Security Reader for Defender data
 - Or just Docker and Docker Compose
@@ -49,7 +49,7 @@ evaluators/     Control evaluators and registry
 controls/       ASB control definitions and starter catalog
 persistence/    SQLAlchemy models and Alembic migrations
 scripts/        PowerShell collectors and remediations, DB init, benchmark update checker
-ui/             React dashboard
+ui/             React dashboard (Vite)
 tests/          pytest suite
 docs/           Getting started, API reference, control catalog, design
 ```
